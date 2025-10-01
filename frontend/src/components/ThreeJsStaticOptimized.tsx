@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import html2canvas from "html2canvas";
 
 type BoxDim = {
   length: string;
@@ -140,7 +141,7 @@ export default function ThreeJsStaticOptimized({
       containerWidth * sceneScale
     );
     const contMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#B8D5F3"),
+      color: new THREE.Color("#63ABF7"),
       transparent: true,
       opacity: 0.25,
       roughness: 0.1,
@@ -180,9 +181,6 @@ export default function ThreeJsStaticOptimized({
       }
       return [0, 0, 0];
     };
-
-    // Validate whether a placement interpretation fits inside the container.
-    // interpretationFn converts raw parsed [x,y,z] -> [px,py,pz] in meters where px/pz are MIN-corner coords inside container [0..L]/[0..W]
     const validateInterpretation = (
       items: PackedItemData[],
       interpretationFn: (raw: [number, number, number], dims: { l: number; w: number; h: number }) => [number, number, number]
@@ -211,26 +209,18 @@ export default function ThreeJsStaticOptimized({
       }
       return { ok: overflowCount === 0, overflowCount };
     };
-
-    // Interpretations to try (raw -> min-corner coords inside container):
-    // 1) raw is min-corner already and axes are [x:length, y:height, z:width]
     const asMinCorner = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[0], raw[1], raw[2]];
     };
-    // 2) raw is center coords -> convert to min-corner
     const asCenter = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[0] - dims.l / 2, raw[1] - dims.h / 2, raw[2] - dims.w / 2];
     };
-    // 3) sometimes backend uses swapped X/Z (length <-> width) ; treat raw as min-corner but swap x<->z
     const asMinCornerSwapXZ = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[2], raw[1], raw[0]];
     };
-    // 4) swapped & center
     const asCenterSwapXZ = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[2] - dims.l / 2, raw[1] - dims.h / 2, raw[0] - dims.w / 2];
     };
-
-    // If API provided packedItemsData, try to pick an interpretation that produces 0 overflow.
     if (packedItemsData && packedItemsData.length > 0) {
       const interpretations = [
         { fn: asMinCorner, name: "min-corner (x=length,z=width)" },
@@ -238,18 +228,13 @@ export default function ThreeJsStaticOptimized({
         { fn: asMinCornerSwapXZ, name: "min-corner swapped X/Z" },
         { fn: asCenterSwapXZ, name: "center swapped X/Z" },
       ];
-
-      // run validations
       const results = interpretations.map((it) => {
         const res = validateInterpretation(packedItemsData, it.fn);
         return { name: it.name, fn: it.fn, ok: res.ok, overflowCount: res.overflowCount };
       });
-
-      // pick first ok interpretation if any
       const okInterpretation = results.find((r) => r.ok);
       if (okInterpretation) {
         console.info(`[ThreeJS] Using API interpretation: ${okInterpretation.name}`);
-        // place meshes using that interpretation
         const group = new THREE.Group();
         const colorList = ["#58A6FF", "#6BCB77", "#FFD93D", "#FF6B6B", "#9D5CFF", "#F0A500", "#4D96FF"];
         packedItemsData.forEach((item, idx) => {
@@ -412,17 +397,53 @@ export default function ThreeJsStaticOptimized({
     showGrid,
   ]);
 
+const handleExportPNG = () => {
+  if (!rendererRef.current || !sceneRef.current || !mountRef.current) return;
+
+  const renderer = rendererRef.current;
+  const scene = sceneRef.current;
+
+  // Make a temporary background for export
+  const prevClearColor = renderer.getClearColor(new THREE.Color());
+  const prevAlpha = renderer.getClearAlpha();
+
+  renderer.setClearColor(new THREE.Color("#ffffff"), 1); // white background
+  renderer.render(scene, controlsRef.current!.object); // render scene once
+
+  const dataURL = renderer.domElement.toDataURL("image/png");
+
+  // Restore previous renderer background
+  renderer.setClearColor(prevClearColor, prevAlpha);
+
+  const link = document.createElement("a");
+  link.download = "container.png";
+  link.href = dataURL;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
+
   return (
-    <div
-      ref={mountRef}
-      className={className}
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "transparent",
-        position: "relative",
-        ...style,
-      }}
-    />
+    <>
+      <div
+        ref={mountRef}
+        className={className}
+        style={{
+          width: "100%",
+          height: "100%",
+          background: "transparent",
+          position: "relative",
+          ...style,
+        }}
+      />
+      <button
+        onClick={handleExportPNG}
+        className="absolute top-0 right-5 bg-blue-500 md:w-56 py-2 text-white rounded"
+      >
+        Export PNG
+      </button>
+    </>
   );
 }

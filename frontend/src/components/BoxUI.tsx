@@ -534,7 +534,7 @@
               </div>
             </div>
 
-            <div className="md:min-w-56 md:max-h-26 h-30 bg-white border-2 flex flex-col border-gray-300 rounded-md absolute bottom-25 left-5 right-5 md:top-5 md:right-5 md:left-auto md:bottom-auto md:px-3 px-4 py-3 md:py-3 text-[11px] justify-center gap-2 font-semibold overflow-auto sidebar">
+            <div className="md:min-w-56 md:max-h-26 h-30 bg-white border-2 flex flex-col border-gray-300 rounded-md absolute bottom-25 left-5 right-5 md:top-5 md:right-5 md:left-auto md:px-3 px-4 py-3 md:py-3 text-[11px] justify-center gap-2 font-semibold overflow-auto sidebar">
               <p>Containers Required: {numContainers}</p>
               <p>Container Volume: {containerVolume} m³</p>
               <p>Total Boxes Volume: {totalBoxVolume} m³</p>
