@@ -137,8 +137,7 @@ def plan():
 
         if verbose:
             print(f"[DEBUG] {bin.name}: Packed {len(bin.items)} items, {len(unpacked_items)} left.")
-
-        # safety to prevent infinite loops in case of library bug
+            
         if len(packed_bins) > 50:
             break
 
