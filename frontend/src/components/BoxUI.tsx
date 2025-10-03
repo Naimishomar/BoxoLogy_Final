@@ -483,7 +483,7 @@ function BoxUI() {
           }`}
           onClick={toggleLeftSidebar}
         >
-          <img src="./LeftSideBar.png" alt="" className="w-[75%] object-contain" />
+          <img src="/LeftSideBar.png" alt="" className="w-[75%] object-contain" />
         </button>
 
         {/* RIGHT floating handle (mobile) - now uses toggleRightSidebar */}
@@ -493,12 +493,12 @@ function BoxUI() {
           }`}
           onClick={toggleRightSidebar}
         >
-          <img src="./RightSideBar.png" alt="" className="w-full h-full object-contain" />
+          <img src="/RightSideBar.png" alt="" className="w-full h-full object-contain" />
         </button>
 
         <div className="w-full h-full">
           <img
-            src="./Background.png"
+            src="/Background.png"
             alt="background"
             className="w-full h-full object-cover bg-white absolute top-0 left-0"
           />
@@ -517,7 +517,7 @@ function BoxUI() {
                     ).toFixed(3)}{" "}
                     {box.unit}
                   </p>
-                  <img src="./Box.png" alt="box" className="w-[40%] object-contain" />
+                  <img src="/Box.png" alt="box" className="w-[40%] object-contain" />
                   <p className="text-[10px]">
                     Weight: {(Number(box.weight || 0) * Number(box.quantity || 1)).toFixed(2)} kg
                   </p>
