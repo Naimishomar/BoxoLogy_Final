@@ -1,8 +1,7 @@
 // ThreeJsStaticOptimized.tsx
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import html2canvas from "html2canvas";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 type BoxDim = {
   length: string;
@@ -24,7 +23,7 @@ type ContainerDim = {
 
 type PackedItemData = {
   name: string;
-  position: any; // array [x,y,z] or {x,y,z}
+  position: any; // array [x,y,z]
   dimensions: {
     length: number;
     width: number;
@@ -74,19 +73,25 @@ export default function ThreeJsStaticOptimized({
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // cleanup previous
+    // cleanup previous renderer/scene/controls if any
     if (rendererRef.current) {
       try {
         rendererRef.current.forceContextLoss();
         const canvas = rendererRef.current.domElement;
         if (mountRef.current.contains(canvas)) mountRef.current.removeChild(canvas);
         rendererRef.current.dispose();
-      } catch (e) {}
+      } catch (e: unknown) {
+        console.log(e);
+      }
       rendererRef.current = null;
       sceneRef.current = null;
     }
     if (controlsRef.current) {
-      controlsRef.current.dispose();
+      try {
+        controlsRef.current.dispose();
+      } catch (e: unknown) {
+        console.log(e);
+      }
       controlsRef.current = null;
     }
     if (rafRef.current) {
@@ -122,9 +127,10 @@ export default function ThreeJsStaticOptimized({
     scene.add(dir);
 
     // container dims (in meters)
-    const contL = convertToMeters(Number(containerDimensions.length) || 0, containerDimensions.unit);
-    const contW = convertToMeters(Number(containerDimensions.width) || 0, containerDimensions.unit);
-    const contH = convertToMeters(Number(containerDimensions.height) || 0, containerDimensions.unit);
+    const unit = containerDimensions.unit ?? "m";
+    const contL = convertToMeters(Number(containerDimensions.length) || 0, unit);
+    const contW = convertToMeters(Number(containerDimensions.width) || 0, unit);
+    const contH = convertToMeters(Number(containerDimensions.height) || 0, unit);
 
     const containerLength = contL > 0 ? contL : 2;
     const containerWidth = contW > 0 ? contW : 1.5;
@@ -161,14 +167,14 @@ export default function ThreeJsStaticOptimized({
     if (showGrid) {
       const gridSize = Math.max(containerLength, containerWidth) * sceneScale;
       const grid = new THREE.GridHelper(gridSize, 10);
-      (grid.material as any).opacity = 0.12;
-      (grid.material as any).transparent = true;
+      (grid.material as THREE.Material).transparent = true;
+      (grid.material as unknown as THREE.Material).opacity = 0.1;
       grid.position.y = 0.001;
       scene.add(grid);
     }
 
     // helper to parse raw API pos into [x,y,z] numbers (assumes meters)
-    const parsePositionRaw = (pos: any): [number, number, number] => {
+    const parsePositionRaw = (pos: any | undefined): [number, number, number] => {
       if (!pos) return [0, 0, 0];
       if (Array.isArray(pos) && pos.length >= 3) {
         return [Number(pos[0]) || 0, Number(pos[1]) || 0, Number(pos[2]) || 0];
@@ -181,6 +187,7 @@ export default function ThreeJsStaticOptimized({
       }
       return [0, 0, 0];
     };
+
     const validateInterpretation = (
       items: PackedItemData[],
       interpretationFn: (raw: [number, number, number], dims: { l: number; w: number; h: number }) => [number, number, number]
@@ -200,27 +207,33 @@ export default function ThreeJsStaticOptimized({
         const maxY = py + h;
         const maxZ = pz + w;
         // check inside [0, containerLength] and [0, containerWidth] and [0, containerHeight]
-        if (minX < -1e-9 || minY < -1e-9 || minZ < -1e-9 ||
-            maxX > containerLength + 1e-9 ||
-            maxY > containerHeight + 1e-9 ||
-            maxZ > containerWidth + 1e-9) {
+        if (
+          minX < -1e-9 ||
+          minY < -1e-9 ||
+          minZ < -1e-9 ||
+          maxX > containerLength + 1e-9 ||
+          maxY > containerHeight + 1e-9 ||
+          maxZ > containerWidth + 1e-9
+        ) {
           overflowCount++;
         }
       }
       return { ok: overflowCount === 0, overflowCount };
     };
-    const asMinCorner = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
+
+    const asMinCorner = (raw: [number, number, number], _dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[0], raw[1], raw[2]];
     };
     const asCenter = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[0] - dims.l / 2, raw[1] - dims.h / 2, raw[2] - dims.w / 2];
     };
-    const asMinCornerSwapXZ = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
+    const asMinCornerSwapXZ = (raw: [number, number, number], _dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[2], raw[1], raw[0]];
     };
     const asCenterSwapXZ = (raw: [number, number, number], dims: { l: number; w: number; h: number }): [number, number, number] => {
       return [raw[2] - dims.l / 2, raw[1] - dims.h / 2, raw[0] - dims.w / 2];
     };
+
     if (packedItemsData && packedItemsData.length > 0) {
       const interpretations = [
         { fn: asMinCorner, name: "min-corner (x=length,z=width)" },
@@ -317,7 +330,7 @@ export default function ThreeJsStaticOptimized({
       let cursorZ = 0;
       let layerHeight = 0;
       const padding = 0.01;
-      for (let it of instances) {
+      for (const it of instances) {
         if (cursorX + it.l > containerLength) {
           cursorX = 0;
           cursorZ += layerHeight + padding;
@@ -362,9 +375,10 @@ export default function ThreeJsStaticOptimized({
 
     // resize
     const handleResize = () => {
-      const w2 = mount.clientWidth || 600;
-      const h2 = mount.clientHeight || 400;
-      renderer.setSize(w2, h2);
+      if (!mountRef.current || !rendererRef.current) return;
+      const w2 = mountRef.current.clientWidth || 600;
+      const h2 = mountRef.current.clientHeight || 400;
+      rendererRef.current.setSize(w2, h2);
       camera.aspect = w2 / h2;
       camera.updateProjectionMatrix();
     };
@@ -374,13 +388,19 @@ export default function ThreeJsStaticOptimized({
     return () => {
       window.removeEventListener("resize", handleResize);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      controls.dispose();
+      try {
+        controls.dispose();
+      } catch (e: unknown) {
+        console.log(e);
+      }
       try {
         renderer.forceContextLoss();
         const canvas = renderer.domElement;
         if (mount.contains(canvas)) mount.removeChild(canvas);
         renderer.dispose();
-      } catch (e) {}
+      } catch (e: unknown) {
+        console.log(e);
+      }
       rendererRef.current = null;
       sceneRef.current = null;
       controlsRef.current = null;
@@ -391,52 +411,61 @@ export default function ThreeJsStaticOptimized({
     containerDimensions.width,
     containerDimensions.height,
     containerDimensions.unit,
-    JSON.stringify(packedItemsData ?? []),
-    JSON.stringify(boxDimensions.map((b) => ({ ...b }))),
+    packedItemsData,
+    boxDimensions,
     maxInstances,
     showGrid,
   ]);
 
-const handleExportPNG = () => {
-  if (!rendererRef.current || !sceneRef.current || !mountRef.current) return;
+  const handleExportPNG = () => {
+    const renderer = rendererRef.current;
+    const scene = sceneRef.current;
+    if (!renderer || !scene) return;
+    const controlCam = controlsRef.current?.object as unknown as THREE.Camera | undefined;
+    const cam = controlCam ?? (scene.children.find((c) => (c as unknown as THREE.Camera).isCamera) as THREE.Camera | undefined);
 
-  const renderer = rendererRef.current;
-  const scene = sceneRef.current;
-  const prevClearColor = renderer.getClearColor(new THREE.Color());
-  const prevAlpha = renderer.getClearAlpha();
-  renderer.setClearColor(new THREE.Color("#ffffff"), 1);
-  renderer.render(scene, controlsRef.current!.object);
-  const dataURL = renderer.domElement.toDataURL("image/png");
-  renderer.setClearColor(prevClearColor, prevAlpha);
-  const link = document.createElement("a");
-  link.download = `container-${Date.now().toString()}.png`;
-  link.href = dataURL;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+    if (!cam) {
+      console.warn("No camera available for export.");
+      return;
+    }
 
+    // preserve previous clear color and alpha
+    const prevClearColor = renderer.getClearColor(new THREE.Color());
+    const prevAlpha = renderer.getClearAlpha();
+    renderer.setClearColor(new THREE.Color("#ffffff"), 1);
+    renderer.render(scene, cam);
+    const dataURL = renderer.domElement.toDataURL("image/png");
+    // restore
+    renderer.setClearColor(prevClearColor, prevAlpha);
 
+    const link = document.createElement("a");
+    link.download = `container-${Date.now().toString()}.png`;
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
-    <>
-      <div
-        ref={mountRef}
-        className={className}
-        style={{
-          width: "100%",
-          height: "100%",
-          background: "transparent",
-          position: "relative",
-          ...style,
-        }}
-      />
+    <div
+      ref={mountRef}
+      className={className}
+      style={{
+        width: "100%",
+        height: "100%",
+        background: "transparent",
+        position: "relative",
+        ...style,
+      }}
+    >
+      {/* Export button inside same relatively-positioned container so absolute works */}
       <button
         onClick={handleExportPNG}
-        className="absolute top-7 right-5 bg-blue-400 md:w-56 cursor-pointer hover:bg-blue-500 py-2 text-white rounded"
+        style={{ position: "absolute", top: 16, right: 16 }}
+        className="bg-blue-400 md:w-56 cursor-pointer hover:bg-blue-500 py-2 text-white rounded"
       >
         Export PNG
       </button>
-    </>
+    </div>
   );
 }
