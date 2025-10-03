@@ -461,7 +461,7 @@ export default function ThreeJsStaticOptimized({
       {/* Export button inside same relatively-positioned container so absolute works */}
       <button
         onClick={handleExportPNG}
-        className="absolute top-5 w-[90%] left-5 flex justify-center items-center md:top-7 md:right-5 bg-blue-400 md:w-56 cursor-pointer hover:bg-blue-500 py-2 text-white rounded"
+        className="absolute top-5 left-1/2  transform -translate-x-1/2 w-[90%]  flex justify-center items-center  md:top-7 md:-right-23 md:left-auto md:transform-none md:w-56 bg-blue-400 cursor-pointer hover:bg-blue-500  py-2 text-white rounded"
       >
         Export PNG
       </button>

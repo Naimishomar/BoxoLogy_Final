@@ -5,7 +5,7 @@ import sys
 app = Flask(__name__)
 
 
-ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"}
+ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "https://boxologyfinal-production.up.railway.app"}
 
 def add_cors(response):
     origin = request.headers.get("Origin")
@@ -14,7 +14,7 @@ def add_cors(response):
         response.headers["Access-Control-Allow-Origin"] = origin
     else:
         # debug-only fallback (not for production)
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+        response.headers["Access-Control-Allow-Origin"] = ["http://localhost:5173", "https://boxologyfinal-production.up.railway.app"]
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     response.headers["Access-Control-Allow-Credentials"] = "false"
