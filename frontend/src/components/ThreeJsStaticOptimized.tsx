@@ -402,21 +402,14 @@ const handleExportPNG = () => {
 
   const renderer = rendererRef.current;
   const scene = sceneRef.current;
-
-  // Make a temporary background for export
   const prevClearColor = renderer.getClearColor(new THREE.Color());
   const prevAlpha = renderer.getClearAlpha();
-
-  renderer.setClearColor(new THREE.Color("#ffffff"), 1); // white background
-  renderer.render(scene, controlsRef.current!.object); // render scene once
-
+  renderer.setClearColor(new THREE.Color("#ffffff"), 1);
+  renderer.render(scene, controlsRef.current!.object);
   const dataURL = renderer.domElement.toDataURL("image/png");
-
-  // Restore previous renderer background
   renderer.setClearColor(prevClearColor, prevAlpha);
-
   const link = document.createElement("a");
-  link.download = "container.png";
+  link.download = `container-${Date.now().toString()}.png`;
   link.href = dataURL;
   document.body.appendChild(link);
   link.click();
@@ -440,7 +433,7 @@ const handleExportPNG = () => {
       />
       <button
         onClick={handleExportPNG}
-        className="absolute top-0 right-5 bg-blue-500 md:w-56 py-2 text-white rounded"
+        className="absolute top-7 right-5 bg-blue-400 md:w-56 cursor-pointer hover:bg-blue-500 py-2 text-white rounded"
       >
         Export PNG
       </button>

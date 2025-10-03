@@ -541,7 +541,7 @@
               <p>Total Boxes Weight: {totalBoxWeight} kg</p>
             </div>
 
-            <div className="w-full top-[30%] md:top-[50%] absolute -translate-y-[30%] h-[500px]">
+            <div className="w-full top-[30%] md:top-[45%] absolute -translate-y-[30%] h-[500px]">
               <ThreeJsStaticOptimized
                 containerDimensions={containerDimensions}
                 boxDimensions={boxDimensions}
