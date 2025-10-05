@@ -5,6 +5,10 @@ import {
 } from "react-icons/md";
 import { IoMdDownload } from "react-icons/io";
 import ThreeJsStaticOptimized from "./ThreeJsStaticOptimized";
+import Background from '../assets/Background.png';
+import Box from '../assets/Box.png';
+import RightSideBar from '../assets/RightSideBar.png';
+import LeftSideBar from '../assets/LeftSideBar.png';
 
 interface BoxDimensions {
   length: string;
@@ -483,7 +487,7 @@ function BoxUI() {
           }`}
           onClick={toggleLeftSidebar}
         >
-          <img src="/LeftSideBar.png" alt="" className="w-[75%] object-contain" />
+          <img src={LeftSideBar} alt="" className="w-[75%] object-contain" />
         </button>
 
         {/* RIGHT floating handle (mobile) - now uses toggleRightSidebar */}
@@ -493,12 +497,12 @@ function BoxUI() {
           }`}
           onClick={toggleRightSidebar}
         >
-          <img src="/RightSideBar.png" alt="" className="w-full h-full object-contain" />
+          <img src={RightSideBar} alt="" className="w-full h-full object-contain" />
         </button>
 
         <div className="w-full h-full">
           <img
-            src="../../public/Background.png"
+            src={Background}
             alt="background"
             className="w-full h-full object-cover bg-white absolute top-0 left-0"
           />
@@ -517,7 +521,7 @@ function BoxUI() {
                     ).toFixed(3)}{" "}
                     {box.unit}
                   </p>
-                  <img src="../../public/Box.png" alt="box" className="w-[40%] object-contain" />
+                  <img src={Box} alt="box" className="w-[40%] object-contain" />
                   <p className="text-[10px]">
                     Weight: {(Number(box.weight || 0) * Number(box.quantity || 1)).toFixed(2)} kg
                   </p>
