@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   MdOutlineKeyboardArrowUp,
   MdOutlineKeyboardArrowDown,
+  MdDelete 
 } from "react-icons/md";
 import { IoMdDownload } from "react-icons/io";
 import ThreeJsStaticOptimized from "./ThreeJsStaticOptimized";
@@ -296,6 +297,10 @@ function BoxUI() {
     }
   };
 
+  const deleteBox = (index: number) => {
+    setBoxDimensions((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="h-screen w-full relative text-black overflow-x-hidden overflow-y-hidden">
       <div className="flex justify-between items-center md:hidden w-full relative top-0 left-0 bg-white py-5 px-5 z-50">
@@ -350,15 +355,16 @@ function BoxUI() {
                 </p>
                 {box.collapsed ? (
                   <MdOutlineKeyboardArrowDown
-                    className="text-2xl cursor-pointer"
-                    onClick={() => toggleCollapse(index)}
+                  className="text-2xl cursor-pointer"
+                  onClick={() => toggleCollapse(index)}
                   />
                 ) : (
                   <MdOutlineKeyboardArrowUp
-                    className="text-2xl cursor-pointer"
-                    onClick={() => toggleCollapse(index)}
+                  className="text-2xl cursor-pointer"
+                  onClick={() => toggleCollapse(index)}
                   />
                 )}
+                <MdDelete className="text-red-400 text-2xl cursor-pointer rounded-full p-1 hover:bg-gray-100" onClick={() => deleteBox(index)}/>
               </div>
 
               {/* Collapsible Content */}
