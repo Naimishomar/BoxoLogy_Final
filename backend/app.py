@@ -1,34 +1,30 @@
-# app.py (replace your existing file with this)
 from flask import Flask, request, jsonify, make_response
 from py3dbp import Packer, Bin, Item
 import sys
 app = Flask(__name__)
 
+ALLOWED_ORIGINS = {
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "https://boxlogic-backend.coolify.trikonatech.com"
+}
 
-ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"}
-
-def add_cors(response):
+def choose_origin():
     origin = request.headers.get("Origin")
-    print(f"[DEBUG] add_cors: Origin = {origin}", file=sys.stdout)
     if origin and origin in ALLOWED_ORIGINS:
-        response.headers["Access-Control-Allow-Origin"] = origin
-    else:
-        # debug-only fallback (not for production)
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+        return origin
+    return "http://localhost:5173"  # debug/dev fallback (change for production)
+
+@app.after_request
+def add_cors(response):
+    origin_to_set = choose_origin()
+    response.headers["Access-Control-Allow-Origin"] = origin_to_set
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
     response.headers["Access-Control-Allow-Credentials"] = "false"
     return response
 
-@app.before_request
-def log_request():
-    print(f"\n[DEBUG] {request.method} {request.path} Origin: {request.headers.get('Origin')}", file=sys.stdout)
-    # print select headers
-    for k, v in request.headers.items():
-        if k.lower() in ("origin", "access-control-request-method", "access-control-request-headers", "content-type"):
-            print(f"  {k}: {v}", file=sys.stdout)
-            
-# handle preflight OPTIONS for /plan
 @app.route('/plan', methods=['OPTIONS'])
 def plan_options():
     resp = make_response("", 204)

@@ -186,7 +186,7 @@ function BoxUI() {
     );
 
     const containerVol = length * width * height;
-    setContainerVolume(Number(containerVol.toFixed(6)));
+    setContainerVolume(Number(containerVol.toFixed(2)));
   }, [
     containerDimensions.length,
     containerDimensions.width,
