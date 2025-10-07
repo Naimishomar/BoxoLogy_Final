@@ -349,7 +349,7 @@ function BoxUI() {
             <div key={index} className="rounded-md py-1 bg-white mb-2">
               <div className="flex justify-between items-center px-1">
                 <p className="font-medium">{box.boxName || `BOX ${index + 1}`}</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-[12px] text-gray-400 px-2">
                   {box.length || "L"} x {box.width || "W"} x {box.height || "H"}{" "}
                   {box.unit}
                 </p>
